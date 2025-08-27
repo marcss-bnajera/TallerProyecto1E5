@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import lombok.*;
 
+import java.time.LocalDate;
 
 
 @Entity(name = "Tareas")
@@ -23,7 +24,7 @@ public class Tarea {
     private Integer codigoTarea;
     private String nombre;
     private String descripcion;
-    private String fechaLimite;
+    private LocalDate fechaLimite;
     private String estado;
 
 }

@@ -1,5 +1,7 @@
 package org.kinscript.TallerProyecto1E5;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -42,22 +44,27 @@ public class TallerProyecto1E5Application implements CommandLineRunner {
 		var salir = false;
 		var consola = new Scanner(System.in);
 		while (!salir) {
-			var opcion = mostrarMenu(consola);
-			salir = ejecutarOpciones(consola, opcion);
-			logger.info(salto);
+			try {
+				var opcion = mostrarMenu(consola);
+				salir = ejecutarOpciones(consola, opcion);
+				logger.info(salto);
+			} catch (Exception e) {
+				logger.error("Ha ocurrido un error: " + e.getMessage());
+			}
 		}
 	}
 
 	private int mostrarMenu(Scanner consola) {
 		logger.info("""
-				***===Aplicacion==***
-				1. Listar Tareas
-				2. Buscar Tareas
-				3. Agregar Tareas
-				4. Modificar Tareas
-				5. Eliminar Tareas
-				6. Salir del Programa
-				""");
+             ***===Aplicacion==***
+             1. Listar Tareas
+             2. Buscar Tareas
+             3. Agregar Tareas
+             4. Modificar Tareas
+             5. Eliminar Tareas
+             6. Salir del Programa
+             """);
+		logger.info("Ingrese su opcion: ");
 		var opcion = Integer.parseInt(consola.nextLine());
 		return opcion;
 	}
@@ -68,16 +75,17 @@ public class TallerProyecto1E5Application implements CommandLineRunner {
 			case 1 -> {
 				logger.info(salto+ "***==Lista Tareas==***" +salto);
 				List<Tarea> tareas = tareaService.listarTarea();
-				tareas.forEach(tarea -> logger.info(tareas.toString()+salto));
+				tareas.forEach(tarea -> logger.info(tarea.toString() + salto));
 			}
 			case 2 -> {
 				logger.info("***==Buscar Tarea por su ID==***"+salto);
+				logger.info("Ingrese el código de la Tarea a buscar: ");
 				var codigo = Integer.parseInt(consola.nextLine());
 				Tarea tarea = tareaService.buscarTareaporId(codigo);
 				if (tarea != null) {
 					logger.info("Tarea encontrada: " + tarea+salto);
 				} else {
-					logger.info("Tarea NO encontrada: " +tarea+salto);
+					logger.info("Tarea NO encontrada: " + codigo+salto);
 				}
 			}
 			case 3 -> {
@@ -86,22 +94,28 @@ public class TallerProyecto1E5Application implements CommandLineRunner {
 				var nombre = consola.nextLine();
 				logger.info("Ingrese la descripcion de la Tarea: ");
 				var descripcion = consola.nextLine();
-				logger.info("Ingrese la fecha limite de la Tarea --> Ej: YYYY-MM-DD: ");
-				var fechaLimite = consola.nextLine();
-				logger.info("Ingrese el estado de la Tarea --> Ej: Pendiente | Completada: ");
+				logger.info("Ingrese la fecha limite de la Tarea (Ej: YYYY-MM-DD): ");
+				var fechaLimiteStr = consola.nextLine();
+				logger.info("Ingrese el estado de la Tarea (Ej: Pendiente | Completada): ");
 				var estado = consola.nextLine();
-				var tarea = new Tarea();
-				tarea.setNombre(nombre);
-				tarea.setDescripcion(descripcion);
-				tarea.setFechaLimite(fechaLimite);
-				tarea.setEstado(estado);
-				tareaService.guardarTarea(tarea);
-				logger.info("Tarea agregada correctamente: " +tarea+salto);
+
+				try {
+					LocalDate fechaLimite = LocalDate.parse(fechaLimiteStr);
+					var tarea = new Tarea();
+					tarea.setNombre(nombre);
+					tarea.setDescripcion(descripcion);
+					tarea.setFechaLimite(fechaLimite);
+					tarea.setEstado(estado);
+					tareaService.guardarTarea(tarea);
+					logger.info("Tarea agregada correctamente: " +tarea+salto);
+				} catch (DateTimeParseException e) {
+					logger.error("Formato de fecha inválido. Por favor, use YYYY-MM-DD.");
+				}
 			}
 			case 4 -> {
 				logger.info("***==Modificar Tarea==***" +salto);
 				//Buscar por codigo
-				logger.info("Agregue el codigo de su Tarea a modificar: ");
+				logger.info("Ingrese el código de la Tarea a modificar: ");
 				var codigo = Integer.parseInt(consola.nextLine());
 				Tarea tarea = tareaService.buscarTareaporId(codigo);
 				//Guardar si no es null
@@ -111,18 +125,24 @@ public class TallerProyecto1E5Application implements CommandLineRunner {
 					var nombre = consola.nextLine();
 					logger.info("Ingrese la descripcion de la Tarea: ");
 					var descripcion = consola.nextLine();
-					logger.info("Ingrese la fecha limite de la Tarea --> Ej: 2025-10-09: ");
-					var fechaLimite = consola.nextLine();
-					logger.info("Ingrese el estado de la Tarea --> Ej: Pendiente | Completada: ");
+					logger.info("Ingrese la fecha limite de la Tarea (Ej: YYYY-MM-DD): ");
+					var fechaLimiteStr = consola.nextLine();
+					logger.info("Ingrese el estado de la Tarea (Ej: Pendiente | Completada): ");
 					var estado = consola.nextLine();
-					tarea.setNombre(nombre);
-					tarea.setDescripcion(descripcion);
-					tarea.setFechaLimite(fechaLimite);
-					tarea.setEstado(estado);
-					tareaService.guardarTarea(tarea);
-					logger.info("Tarea modificada correctamente: " +tarea+salto);
+
+					try {
+						LocalDate fechaLimite = LocalDate.parse(fechaLimiteStr);
+						tarea.setNombre(nombre);
+						tarea.setDescripcion(descripcion);
+						tarea.setFechaLimite(fechaLimite);
+						tarea.setEstado(estado);
+						tareaService.guardarTarea(tarea);
+						logger.info("Tarea modificada correctamente: " +tarea+salto);
+					} catch (DateTimeParseException e) {
+						logger.error("Formato de fecha inválido. Por favor, use YYYY-MM-DD.");
+					}
 				} else {
-					logger.info("Tarea NO encontrada: " +tarea+salto);
+					logger.info("Tarea NO encontrada: " +codigo+salto);
 				}
 			}
 			case 5 -> {
@@ -134,7 +154,7 @@ public class TallerProyecto1E5Application implements CommandLineRunner {
 					tareaService.eliminarTarea(tarea);
 					logger.info("Tarea eliminada correctamente: " +tarea+salto);
 				} else {
-					logger.info("Tarea NO encontrada: " +tarea+salto);
+					logger.info("Tarea NO encontrada: " +codigo+salto);
 				}
 			}
 			case 6 -> {
@@ -143,6 +163,6 @@ public class TallerProyecto1E5Application implements CommandLineRunner {
 			}
 			default -> logger.info("Opcion invalida, vuelva a intentarlo");
 		}
-		return false;
+		return salir;
 	}
 }
